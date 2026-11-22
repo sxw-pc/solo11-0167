@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS payment(id TEXT PRIMARY KEY,loan_id TEXT REFERENCES l
 CREATE TABLE IF NOT EXISTS extension(id TEXT PRIMARY KEY,loan_id TEXT REFERENCES loan(id),new_due_at TEXT,customer_actor TEXT,shop_actor TEXT,at TEXT,source_id INTEGER REFERENCES source_file(id));
 CREATE TABLE IF NOT EXISTS notice(id TEXT PRIMARY KEY,loan_id TEXT REFERENCES loan(id),delivered_at TEXT,grace_until TEXT,recipient TEXT,source_id INTEGER REFERENCES source_file(id));
 CREATE TABLE IF NOT EXISTS decision(id INTEGER PRIMARY KEY,loan_id TEXT,kind TEXT,status TEXT,reason TEXT,at TEXT,source_id INTEGER REFERENCES source_file(id));
+CREATE TABLE IF NOT EXISTS lab_sample(id TEXT PRIMARY KEY,asset_id TEXT,seal TEXT,at TEXT,collector TEXT,source_id INTEGER REFERENCES source_file(id));
+CREATE TABLE IF NOT EXISTS lab_result(id TEXT PRIMARY KEY,sample_id TEXT,analyst TEXT,at TEXT,verdict TEXT,source_id INTEGER REFERENCES source_file(id));
 '''
 @contextmanager
 def open_db(path):

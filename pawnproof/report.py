@@ -13,10 +13,11 @@ def report(path):
 def audit(path):
     from tempfile import TemporaryDirectory
     from pathlib import Path
-    from . import asset,vault,loan
+    from . import asset,vault,loan,lab
     funcs={'asset':asset.import_asset,'ownership':asset.ownership,'appraisal':asset.appraise,
            'vault':vault.import_vault,'custody':vault.custody,'loan':loan.originate,
            'payment':loan.pay,'extension':loan.extend,'notice':loan.notice,'decision':loan.decide}
+    funcs.update({'lab_sample':lab.sample,'lab_result':lab.certify})
     original=report(path)
     with open_db(path) as db:
         files=[(x['kind'],x['raw']) for x in db.execute('SELECT kind,raw FROM source_file ORDER BY id')]

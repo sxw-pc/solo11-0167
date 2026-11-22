@@ -8,6 +8,9 @@ def originate(path,file):
         if unique_event(db,'loan',d['id'],sid):return {'id':d['id'],'replayed':True}
         asset=db.execute('SELECT * FROM asset WHERE asset_id=?',(d['asset_id'],)).fetchone()
         if not asset or asset['status']!='sealed' or asset['owner']!=d['customer']:raise ValueError('asset_not_eligible')
+        if asset['kind']=='gemstone':
+            certificate=db.execute("SELECT 1 FROM lab_result r JOIN lab_sample s ON s.id=r.sample_id WHERE s.asset_id=? AND r.verdict='authentic' LIMIT 1",(d['asset_id'],)).fetchone()
+            if not certificate:raise ValueError('lab_authenticity_missing')
         issued,due=at(d['issued_at']),at(d['due_at'])
         if due<=issued:raise ValueError('loan_window_invalid')
         own=db.execute("SELECT * FROM ownership WHERE asset_id=? AND status='verified' AND valid_from<=? AND valid_to>? ORDER BY valid_from DESC LIMIT 1",(d['asset_id'],issued,issued)).fetchone()
