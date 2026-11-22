@@ -33,6 +33,27 @@ def test_wrong_owner_does_not_create_claim(tmp_path):
     with pytest.raises(ValueError,match='claimant_mismatch'):asset.ownership(db,FIX/'ownership-bad.json')
     with open_db(db) as con:assert con.execute('SELECT count(*) FROM ownership').fetchone()[0]==0
 
+def test_same_serial_cannot_back_two_active_pledges(tmp_path):
+    db=tmp_path/'state.sqlite';asset.import_asset(db,FIX/'asset-ok.json')
+    second={'asset_id':'G2','owner':'C2','kind':'watch','serial':'S-1'}
+    with pytest.raises(ValueError,match='serial_already_pledged'):
+        asset.import_asset(db,fixture(tmp_path,'second.json',second))
+    assert len(report(db)['state']['asset'])==1
+
+def test_seal_needs_independent_custodians_and_free_slot(tmp_path):
+    db=tmp_path/'state.sqlite';asset.import_asset(db,FIX/'asset-ok.json')
+    vault.import_vault(db,FIX/'vault-ok.json')
+    bad=json.loads((FIX/'custody-ok.json').read_text());bad['actor_b']=bad['actor_a']
+    with pytest.raises(ValueError,match='independent_custodians_required'):
+        vault.custody(db,fixture(tmp_path,'oneguard.json',bad))
+    assert report(db)['state']['vault_slot'][0]['occupied_asset'] is None
+    vault.custody(db,FIX/'custody-ok.json')
+    another={'asset_id':'G2','owner':'C2','kind':'watch','serial':'S-2'}
+    asset.import_asset(db,fixture(tmp_path,'another.json',another))
+    bad2={**json.loads((FIX/'custody-ok.json').read_text()),'id':'C-other','asset_id':'G2'}
+    with pytest.raises(ValueError,match='slot_occupied'):
+        vault.custody(db,fixture(tmp_path,'occupied.json',bad2))
+
 def test_appraisal_ceiling_and_independent_assessors(tmp_path):
     db=seed(tmp_path)
     high=json.loads((FIX/'loan-ok.json').read_text());high['principal']='700.00'
