@@ -1,6 +1,6 @@
 import argparse,json,tempfile
 from pathlib import Path
-from . import asset,vault,loan
+from . import asset,vault,loan,dossier
 from .report import report,audit
 
 COMMANDS={'asset-import':asset.import_asset,'ownership-import':asset.ownership,
@@ -17,10 +17,14 @@ def main():
     for name in ('report','audit'):
         x=s.add_parser(name);x.add_argument('--db',required=True)
     d=s.add_parser('demo');d.add_argument('--db')
+    pdoc=s.add_parser('dossier-prepare');pdoc.add_argument('file');pdoc.add_argument('--db',required=True);pdoc.add_argument('--out',required=True)
+    rdoc=s.add_parser('dossier-review');rdoc.add_argument('file');rdoc.add_argument('--db',required=True)
     args=p.parse_args()
     if args.cmd in COMMANDS:result=COMMANDS[args.cmd](args.db,args.file)
     elif args.cmd=='report':result=report(args.db)
     elif args.cmd=='audit':result=audit(args.db)
+    elif args.cmd=='dossier-prepare':result=dossier.prepare(args.db,args.file,args.out)
+    elif args.cmd=='dossier-review':result=dossier.review(args.db,args.file)
     else:
         root=Path(__file__).resolve().parent.parent/'fixtures';db=args.db or str(Path(tempfile.mkdtemp())/'demo.sqlite')
         for name,file in [('asset-import','asset-ok.json'),('ownership-import','ownership-ok.json'),
