@@ -29,8 +29,14 @@ def at(value):
     datetime.fromisoformat(value[:-1]+'+00:00')
     return value
 
+STATE_TABLES=('asset','ownership','appraisal','vault_slot','custody','loan','payment',
+              'payment_payer','extension','notice','decision','customer','heir',
+              'inheritance_document','document_body','counter_verification',
+              'handoff_plan','dispatch_intent','physical_handover','position_log',
+              'handoff_event','dispute','recourse')
+
 def snapshot(db):
     out={}
-    for table in ('asset','ownership','appraisal','vault_slot','custody','loan','payment','extension','notice','decision'):
+    for table in STATE_TABLES:
         out[table]=[dict(x) for x in db.execute(f'SELECT * FROM {table} ORDER BY 1')]
     return out

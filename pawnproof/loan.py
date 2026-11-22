@@ -21,16 +21,31 @@ def originate(path,file):
         return {'id':d['id'],'status':'active','due_cents':principal+interest}
 
 def pay(path,file):
+    """Record a payment.
+
+    ``payer``/``relationship`` are optional and default to the borrower.  A third
+    party (for example an heir advancing the money) may settle the debt; paying
+    never transfers ownership or pickup authority.
+    """
     with open_db(path) as db,db:
         sid,d,replay=read_source(db,'payment',file)
         if unique_event(db,'payment',d['id'],sid):return {'id':d['id'],'replayed':True}
         loan=db.execute('SELECT * FROM loan WHERE id=?',(d['loan_id'],)).fetchone()
         if not loan or loan['status'] not in ('active','extended','disputed'):raise ValueError('loan_not_payable')
         amount=money(d['amount']);moment=at(d['at'])
+        payer=d.get('payer',loan['customer'])
+        dead=db.execute("SELECT deceased_at FROM customer WHERE customer=? AND status='deceased' "
+                        "AND deceased_at<=? ORDER BY verified_at DESC LIMIT 1",
+                        (loan['customer'],moment)).fetchone()
+        if payer==loan['customer'] and dead:
+            raise ValueError('payer_must_be_living_or_representative')
         paid=db.execute('SELECT COALESCE(SUM(amount_cents),0) FROM payment WHERE loan_id=?',(d['loan_id'],)).fetchone()[0]
         if paid+amount>loan['principal_cents']+loan['interest_cents']:raise ValueError('overpayment')
         db.execute('INSERT INTO payment VALUES(?,?,?,?,?)',(d['id'],d['loan_id'],amount,moment,sid))
-        return {'id':d['id'],'outstanding_cents':loan['principal_cents']+loan['interest_cents']-paid-amount}
+        db.execute('INSERT INTO payment_payer VALUES(?,?,?,?,?)',
+                   (d['id'],d['loan_id'],payer,d.get('relationship','self'),sid))
+        return {'id':d['id'],'outstanding_cents':loan['principal_cents']+loan['interest_cents']-paid-amount,
+                'payer':payer}
 
 def extend(path,file):
     with open_db(path) as db,db:
@@ -57,7 +72,18 @@ def notice(path,file):
         db.execute('INSERT INTO notice VALUES(?,?,?,?,?,?)',(d['id'],d['loan_id'],delivered,grace,d['recipient'],sid))
         return {'id':d['id'],'grace_until':grace}
 
+def _lawful_delivery(db,loan_id):
+    return db.execute("SELECT * FROM physical_handover WHERE loan_id=? AND accepted=1 "
+                      "AND status='delivered' ORDER BY at,id DESC LIMIT 1",(loan_id,)).fetchone()
+
 def decide(path,file):
+    """Debt/deadline decision.
+
+    For the legacy living-borrower counter flow the old combined behaviour is
+    kept.  Once the borrower is deceased, or a handoff route has been fixed, this
+    decision no longer moves the asset: physical release only happens through
+    ``redemption_handoff.confirm_handover`` with a countersigned receipt.
+    """
     with open_db(path) as db,db:
         sid,d,replay=read_source(db,'decision',file)
         if replay:
@@ -69,9 +95,14 @@ def decide(path,file):
         asset=db.execute('SELECT status FROM asset WHERE asset_id=?',(loan['asset_id'],)).fetchone()[0]
         paid=db.execute('SELECT COALESCE(SUM(amount_cents),0) FROM payment WHERE loan_id=?',(d['loan_id'],)).fetchone()[0]
         outstanding=loan['principal_cents']+loan['interest_cents']-paid
+        plan=db.execute('SELECT 1 FROM handoff_plan WHERE loan_id=?',(d['loan_id'],)).fetchone()
+        deceased=db.execute("SELECT 1 FROM customer WHERE customer=? AND status='deceased'",
+                            (loan['customer'],)).fetchone()
         if kind=='redeem':
             if outstanding:status,reason='blocked','unpaid_balance'
+            elif _lawful_delivery(db,d['loan_id']):status,reason='approved','settled_and_delivered'
             elif asset!='sealed':status,reason='blocked','custody_disputed'
+            elif deceased or plan:status,reason='blocked','heir_handoff_required'
             else:status,reason='approved','paid_and_sealed'
         elif kind=='forfeit':
             n=db.execute('SELECT * FROM notice WHERE loan_id=? ORDER BY grace_until DESC LIMIT 1',(d['loan_id'],)).fetchone()
@@ -83,5 +114,9 @@ def decide(path,file):
         db.execute('INSERT INTO decision(loan_id,kind,status,reason,at,source_id) VALUES(?,?,?,?,?,?)',(d['loan_id'],kind,status,reason,moment,sid))
         if status=='approved':
             db.execute('UPDATE loan SET status=? WHERE id=?',('redeemed' if kind=='redeem' else 'forfeited',d['loan_id']))
-            release_slot(db,loan['asset_id'])
+            # Legacy counter flow only: no inheritance/handoff evidence exists.
+            if kind=='redeem' and not _lawful_delivery(db,d['loan_id']):
+                release_slot(db,loan['asset_id'])
+        elif reason=='settled_and_delivered':
+            db.execute("UPDATE loan SET status='redeemed' WHERE id=?",(d['loan_id'],))
         return {'status':status,'reason':reason,'outstanding_cents':outstanding}

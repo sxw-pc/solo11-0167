@@ -1,0 +1,1 @@
+{"id": "D-REVOKE-H2", "kind": "revocation", "customer": "C1", "loan_id": "L1", "grantor": "H2", "revokes": "D-AUTH-H1", "scope": "redeem", "effective_from": "2026-03-31T11:00:00Z", "received_at": "2026-03-31T12:00:00Z", "authority": "notary-mock", "body_present": true, "body_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"}

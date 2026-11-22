@@ -1,0 +1,1 @@
+{"customer": "C1", "deceased_at": "2026-03-01T12:00:00Z", "asserted_at": "2026-03-05T09:00:00Z", "heirs": [{"id": "HS1", "heir_id": "H1", "share_num": 1, "share_den": 2}, {"id": "HS2", "heir_id": "H2", "share_num": 1, "share_den": 2}]}

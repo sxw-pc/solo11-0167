@@ -1,0 +1,1 @@
+{"id": "D-AUTH-META", "kind": "authorization", "customer": "C1", "loan_id": "L1", "grantor": "H2", "representative": "H1", "scope": "redeem", "effective_from": "2026-03-20T09:00:00Z", "received_at": "2026-03-21T09:00:00Z", "authority": "notary-mock", "body_present": false}

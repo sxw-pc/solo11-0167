@@ -42,5 +42,49 @@ def custody(path,file):
         return {'id':d['id'],'status':status,'asset_status':db.execute('SELECT status FROM asset WHERE asset_id=?',(d['asset_id'],)).fetchone()[0]}
 
 def release_slot(db,asset_id):
+    """Legacy helper kept for the original decision path.  New handoff code must
+    use :func:`lift_asset` / :func:`release_asset`; clearing a slot is not proof
+    of delivery."""
     db.execute('UPDATE vault_slot SET occupied_asset=NULL WHERE occupied_asset=?',(asset_id,))
     db.execute("UPDATE asset SET status='released' WHERE asset_id=?",(asset_id,))
+
+# ---------------------------------------------------------------------------
+# Physical movement primitives used by redemption_handoff.
+# ---------------------------------------------------------------------------
+
+def _position(db,asset_id,moment,location,holder,reason,handover_id,source_id):
+    old=db.execute('SELECT 1 FROM position_log WHERE asset_id=? AND reason=? AND '
+                   'handover_id IS ?',(asset_id,reason,handover_id)).fetchone()
+    if old:return
+    db.execute('INSERT INTO position_log(asset_id,at,location,holder,reason,handover_id,source_id) '
+               'VALUES(?,?,?,?,?,?,?)',(asset_id,moment,location,holder,reason,handover_id,source_id))
+
+def lift_asset(db,asset_id,moment,holder,reason,dispatch_id,source_id):
+    """Take the asset out of its slot.  The slot becomes empty and the named
+    holder is recorded as actual custodian.  This is deliberately *not* a
+    release: the asset stays in store custody until a countersigned external
+    receipt exists."""
+    place=db.execute('SELECT * FROM vault_slot WHERE occupied_asset=?',(asset_id,)).fetchone()
+    if not place:raise ValueError('asset_not_in_slot')
+    asset=db.execute('SELECT status FROM asset WHERE asset_id=?',(asset_id,)).fetchone()
+    if not asset or asset['status']!='sealed':raise ValueError('asset_not_sealed')
+    db.execute('UPDATE vault_slot SET occupied_asset=NULL WHERE slot_id=?',(place['slot_id'],))
+    db.execute("UPDATE asset SET status='held_at_shop' WHERE asset_id=?",(asset_id,))
+    _position(db,asset_id,moment,'shop-vault',holder,reason,dispatch_id,source_id)
+    return {'asset_id':asset_id,'status':'held_at_shop','holder':holder}
+
+def release_asset(db,asset_id,moment,custodian,handover_id,source_id):
+    """Only called after a lawful, countersigned external receipt exists."""
+    db.execute('UPDATE vault_slot SET occupied_asset=NULL WHERE occupied_asset=?',(asset_id,))
+    db.execute("UPDATE asset SET status='released' WHERE asset_id=?",(asset_id,))
+    _position(db,asset_id,moment,'external',custodian,'lawful_delivery',handover_id,source_id)
+    return {'asset_id':asset_id,'status':'released','custodian':custodian}
+
+def hold_at_shop(db,asset_id,moment,handover_id,source_id):
+    """Delivery interrupted or refused: keep an explicit custodian instead of
+    pretending the customer has collected the asset."""
+    asset=db.execute('SELECT status FROM asset WHERE asset_id=?',(asset_id,)).fetchone()
+    if not asset or asset['status']=='released':return {'asset_id':asset_id,'status':asset['status'] if asset else None}
+    db.execute("UPDATE asset SET status='held_at_shop' WHERE asset_id=?",(asset_id,))
+    _position(db,asset_id,moment,'shop-vault','shop-vault','held_after_failed_delivery',handover_id,source_id)
+    return {'asset_id':asset_id,'status':'held_at_shop','custodian':'shop-vault'}
