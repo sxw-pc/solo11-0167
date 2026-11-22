@@ -1,0 +1,6 @@
+{
+  "copies": [
+    {"copy_id": "BATCH-2026-03-A", "medium": "sqlite_backup", "location": "backups/batch-a.sqlite"},
+    {"copy_id": "EXPORT-DOSSIER-7", "medium": "export_dossier", "location": "exports/dossier-7"}
+  ]
+}
