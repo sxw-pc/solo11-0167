@@ -1,4 +1,11 @@
-"""Baseline local specimen intake and authenticity result ledger."""
+"""Baseline local specimen intake and authenticity result ledger.
+
+Manual verdicts imported here stay on record as ungrounded claims: nothing
+in this module ties a verdict to an instrument run, a calibration batch, a
+tray slot or a sampling seal beyond the collector's own declaration.
+Grounded, route-bound certificates derived from raw instrument captures
+live in pawnproof.lab_capture; gemstone loans opt into them via `lab_route`.
+"""
 from .store import open_db
 from .evidence import at, read_source, unique_event
 

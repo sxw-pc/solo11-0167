@@ -1,6 +1,6 @@
 import argparse,json,tempfile
 from pathlib import Path
-from . import asset,vault,loan,lab
+from . import asset,vault,loan,lab,lab_capture
 from .report import report,audit
 
 COMMANDS={'asset-import':asset.import_asset,'ownership-import':asset.ownership,
@@ -8,7 +8,11 @@ COMMANDS={'asset-import':asset.import_asset,'ownership-import':asset.ownership,
           'custody-import':vault.custody,'loan-import':loan.originate,
           'payment-import':loan.pay,'extension-import':loan.extend,
           'notice-import':loan.notice,'decision-import':loan.decide}
-COMMANDS.update({'lab-sample-import':lab.sample,'lab-result-import':lab.certify})
+COMMANDS.update({'lab-sample-import':lab.sample,'lab-result-import':lab.certify,
+                 'lab-capture-import':lab_capture.import_capture,
+                 'lab-evidence-import':lab_capture.import_evidence,
+                 'lab-evidence-revoke':lab_capture.revoke_evidence,
+                 'lab-certificate-issue':lab_capture.issue_certificate})
 
 def main():
     p=argparse.ArgumentParser(description='Offline pledge custody and redemption evidence')

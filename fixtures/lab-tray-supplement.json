@@ -1,0 +1,10 @@
+{
+  "id": "TRAY2",
+  "kind": "tray_log",
+  "at": "2026-03-01T09:26:00Z",
+  "frames": [
+    {"at": "2026-03-01T09:09:30Z", "slots": {"T1": "gem-seal", "T2": "gem-seal-2"}},
+    {"at": "2026-03-01T09:11:00Z", "slots": {"T1": "gem-seal", "T2": "gem-seal-2"}},
+    {"at": "2026-03-01T09:15:00Z", "slots": {"T1": "gem-seal-2", "T2": "gem-seal"}}
+  ]
+}

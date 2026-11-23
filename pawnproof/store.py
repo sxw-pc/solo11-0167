@@ -17,6 +17,17 @@ CREATE TABLE IF NOT EXISTS notice(id TEXT PRIMARY KEY,loan_id TEXT REFERENCES lo
 CREATE TABLE IF NOT EXISTS decision(id INTEGER PRIMARY KEY,loan_id TEXT,kind TEXT,status TEXT,reason TEXT,at TEXT,source_id INTEGER REFERENCES source_file(id));
 CREATE TABLE IF NOT EXISTS lab_sample(id TEXT PRIMARY KEY,asset_id TEXT,seal TEXT,at TEXT,collector TEXT,source_id INTEGER REFERENCES source_file(id));
 CREATE TABLE IF NOT EXISTS lab_result(id TEXT PRIMARY KEY,sample_id TEXT,analyst TEXT,at TEXT,verdict TEXT,source_id INTEGER REFERENCES source_file(id));
+CREATE TABLE IF NOT EXISTS lab_capture(id TEXT PRIMARY KEY,analyst TEXT,at TEXT,config TEXT,source_id INTEGER REFERENCES source_file(id));
+CREATE TABLE IF NOT EXISTS lab_calibration(id TEXT PRIMARY KEY,capture_id TEXT,instrument TEXT,at TEXT,status TEXT,spectra TEXT,source_id INTEGER REFERENCES source_file(id));
+CREATE TABLE IF NOT EXISTS lab_run(id TEXT PRIMARY KEY,capture_id TEXT,instrument TEXT,slot TEXT,at TEXT,calibration_id TEXT,matches TEXT,peaks TEXT,source_id INTEGER REFERENCES source_file(id));
+CREATE TABLE IF NOT EXISTS lab_tray_frame(capture_id TEXT,seq INTEGER,at TEXT,slot TEXT,seal TEXT);
+CREATE TABLE IF NOT EXISTS lab_seal_scan(capture_id TEXT,sample_id TEXT,seal TEXT,at TEXT,source_id INTEGER REFERENCES source_file(id));
+CREATE TABLE IF NOT EXISTS lab_report_claim(capture_id TEXT,sample_id TEXT,verdict TEXT,source_id INTEGER REFERENCES source_file(id));
+CREATE TABLE IF NOT EXISTS lab_evidence(id TEXT PRIMARY KEY,kind TEXT,status TEXT,at TEXT,source_id INTEGER REFERENCES source_file(id));
+CREATE TABLE IF NOT EXISTS lab_evidence_frame(evidence_id TEXT,at TEXT,slot TEXT,seal TEXT);
+CREATE TABLE IF NOT EXISTS lab_revocation(id TEXT PRIMARY KEY,evidence_id TEXT,reason TEXT,at TEXT,source_id INTEGER REFERENCES source_file(id));
+CREATE TABLE IF NOT EXISTS lab_certificate(id TEXT PRIMARY KEY,sample_id TEXT,asset_id TEXT,route TEXT,verdict TEXT,status TEXT,at TEXT,basis TEXT,source_id INTEGER REFERENCES source_file(id));
+CREATE TABLE IF NOT EXISTS lab_review(id INTEGER PRIMARY KEY,loan_id TEXT,certificate_id TEXT,reason TEXT,at TEXT,source_id INTEGER REFERENCES source_file(id));
 '''
 @contextmanager
 def open_db(path):

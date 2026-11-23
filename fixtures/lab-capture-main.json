@@ -1,0 +1,48 @@
+{
+  "id": "CAP1",
+  "at": "2026-03-01T09:30:00Z",
+  "analyst": "lab-B",
+  "authorized_analysts": ["lab-B", "lab-C"],
+  "instruments": [
+    {"id": "SPEC-A", "role": "primary", "clock_offset_seconds": [35, 45]},
+    {"id": "SPEC-B", "role": "secondary", "clock_offset_seconds": [-80, -60]}
+  ],
+  "reference": {
+    "valid_segments": [[400, 420], [510, 530]],
+    "peaks": [
+      {"position": 410, "ratio": 1.0},
+      {"position": 520, "ratio": 0.5}
+    ],
+    "position_tolerance": 3,
+    "height_tolerance": 0.2,
+    "residue_threshold": 0.1
+  },
+  "calibrations": [
+    {"id": "CB-A", "instrument": "SPEC-A", "at": "2026-03-01T08:55:00Z",
+     "blank": [{"position": 405, "height": 20}],
+     "standard": [{"position": 410, "height": 1000}, {"position": 520, "height": 800}]},
+    {"id": "CB-B", "instrument": "SPEC-B", "at": "2026-03-01T08:56:00Z",
+     "blank": [{"position": 412, "height": 360}],
+     "standard": [{"position": 410, "height": 900}, {"position": 520, "height": 850}]}
+  ],
+  "tray_frames": [
+    {"seq": 1, "at": "2026-03-01T09:00:00Z", "slots": {"T1": "gem-seal", "T2": "gem-seal-2"}},
+    {"seq": 3, "at": "2026-03-01T09:20:00Z", "slots": {"T1": "gem-seal-2", "T2": "gem-seal"}}
+  ],
+  "runs": [
+    {"id": "RA", "instrument": "SPEC-A", "calibration_id": "CB-A", "slot": "T1",
+     "at": "2026-03-01T09:10:40Z",
+     "peaks": [{"position": 410, "height": 990}, {"position": 520, "height": 390}, {"position": 600, "height": 15}]},
+    {"id": "RB", "instrument": "SPEC-B", "calibration_id": "CB-B", "slot": "T2",
+     "at": "2026-03-01T09:22:00Z",
+     "peaks": [{"position": 410, "height": 880}, {"position": 520, "height": 420}]}
+  ],
+  "seal_scans": [
+    {"sample_id": "SMP1", "seal": "gem-seal", "at": "2026-03-01T08:50:00Z"},
+    {"sample_id": "SMP2", "seal": "gem-seal-2", "at": "2026-03-01T08:50:30Z"}
+  ],
+  "report_page": [
+    {"sample_id": "SMP1", "verdict": "authentic"},
+    {"sample_id": "SMP2", "verdict": "unknown"}
+  ]
+}

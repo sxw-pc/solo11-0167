@@ -31,6 +31,8 @@ def at(value):
 
 def snapshot(db):
     out={}
-    for table in ('asset','ownership','appraisal','vault_slot','custody','loan','payment','extension','notice','decision','lab_sample','lab_result'):
+    for table in ('asset','ownership','appraisal','vault_slot','custody','loan','payment','extension','notice','decision','lab_sample','lab_result',
+                  'lab_capture','lab_calibration','lab_run','lab_tray_frame','lab_seal_scan','lab_report_claim',
+                  'lab_evidence','lab_evidence_frame','lab_revocation','lab_certificate','lab_review'):
         out[table]=[dict(x) for x in db.execute(f'SELECT * FROM {table} ORDER BY 1')]
     return out
