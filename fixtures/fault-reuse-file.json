@@ -1,0 +1,2 @@
+{"dossier_id": "DOC1", "strategy": "reuse_file_recompute_db",
+ "note": "Naive fix two: recompute current status in the database but reuse the DOC1 file/digest the customer already signed."}

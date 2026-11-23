@@ -1,0 +1,2 @@
+{"dossier_id": "DOC1", "strategy": "append_accepted_flag",
+ "note": "Naive fix one: keep the old DOC1 file and merely stamp an accepted field on it after redemption."}

@@ -1,0 +1,11 @@
+{"release_id": "REL-RELABEL", "dossier_id": "DOC1", "authority": "regulator-A",
+ "purpose": "historical_transaction_review",
+ "fields": ["data.loan.id", "data.loan.asset_id", "data.loan.principal_cents",
+            "data.loan.interest_cents", "data.loan.due_at", "data.loan.status",
+            "data.loan.appraisal_id", "data.loan.source_id",
+            "data.asset[0].asset_id", "data.asset[0].kind", "data.asset[0].status",
+            "data.custody", "data.decisions", "watermark",
+            "source_files", "loan_status_at_capture", "asset_status_at_capture",
+            "withdrawal_link"],
+ "created_at": "2026-03-31T14:00:00.000000Z",
+ "adjudicate_as": "current_custody_review"}

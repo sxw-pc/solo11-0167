@@ -1,0 +1,2 @@
+{"dossier_id": "DOC1", "strategy": "delete_old_dossier",
+ "note": "Naive fix three: delete the old DOC1 so only the new state is visible."}

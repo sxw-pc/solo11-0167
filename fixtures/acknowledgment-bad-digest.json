@@ -1,0 +1,3 @@
+{"id": "ACK-BAD-DIGEST", "dossier_id": "DOC1", "release_id": "REL-DOC1-HIST",
+ "authority": "regulator-A", "digest": "0000000000000000000000000000000000000000000000000000000000000000",
+ "at": "2026-03-01T13:30:00.000000Z"}
